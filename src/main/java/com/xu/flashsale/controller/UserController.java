@@ -1,6 +1,10 @@
 package com.xu.flashsale.controller;
 
 import com.xu.flashsale.controller.viewobject.UserVO;
+import com.xu.flashsale.error.BusinessException;
+import com.xu.flashsale.error.CommonError;
+import com.xu.flashsale.error.EmBusinessError;
+import com.xu.flashsale.response.CommonReturnType;
 import com.xu.flashsale.service.UserService;
 import com.xu.flashsale.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
@@ -13,14 +17,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/user")
-public class UserController {
+public class UserController extends BaseComtroller{
     @Autowired
     private UserService userService;
 
     @RequestMapping("/get")
-    public UserVO getUser(@RequestParam(name = "id")Integer id){
+    public CommonReturnType getUser(@RequestParam(name = "id")Integer id) throws BusinessException {
         UserModel userModel = userService.getUserById(id);
-        return convertFromModel(userModel);
+        UserVO userVO = convertFromModel(userModel);
+
+        throw new BusinessException(EmBusinessError.UNKNOWN_ERROR);
+        //return CommonReturnType.create(userVO);
     }
 
     private UserVO convertFromModel(UserModel userModel) {
