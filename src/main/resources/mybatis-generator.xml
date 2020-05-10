@@ -6,7 +6,7 @@
 
     <context id="DB2Tables"    targetRuntime="MyBatis3">
         <!--数据库链接地址账号密码-->
-        <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://127.0.0.1:3306/flashsale" userId="root" password="wangxu">
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver" connectionURL="jdbc:mysql://127.0.0.1:3306/flashsale" userId="root" password="wangxu">
         </jdbcConnection>
         <!--生成DataObject类存放位置-->
         <javaModelGenerator targetPackage="com.xu.flashsale.dataobject" targetProject="src/main/java">

@@ -1,14 +1,26 @@
 package com.xu.flashsale.service.model;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 public class UserModel {
 
     private Integer id;
+    @NotBlank(message = "用户名不能为空")
     private String name;
-    private Boolean gender;
+    @NotNull(message = "性别不能不填写")
+    private Byte gender;
+    @NotNull(message = "年龄不能不填写")
+    @Min(value = 0,message = "年龄必须大于0岁")
+    @Max(value = 150,message = "年龄必须小于150岁")
     private Integer age;
+    @NotBlank(message = "手机号不能为空")
     private String telphone;
     private String registerMode;
     private String thirdPartId;
+    @NotBlank(message = "密码不能为空")
     private String encrpPassword;
 
     public Integer getId() {
@@ -27,11 +39,11 @@ public class UserModel {
         this.name = name;
     }
 
-    public Boolean getGender() {
+    public Byte getGender() {
         return gender;
     }
 
-    public void setGender(Boolean gender) {
+    public void setGender(Byte gender) {
         this.gender = gender;
     }
 
@@ -73,5 +85,19 @@ public class UserModel {
 
     public void setEncrpPassword(String encrpPassword) {
         this.encrpPassword = encrpPassword;
+    }
+
+    @Override
+    public String toString() {
+        return "UserModel{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", gender=" + gender +
+                ", age=" + age +
+                ", telphone='" + telphone + '\'' +
+                ", registerMode='" + registerMode + '\'' +
+                ", thirdPartId='" + thirdPartId + '\'' +
+                ", encrpPassword='" + encrpPassword + '\'' +
+                '}';
     }
 }

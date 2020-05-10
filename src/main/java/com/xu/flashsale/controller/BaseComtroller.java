@@ -15,6 +15,8 @@ import java.util.HashSet;
 
 public class BaseComtroller {
 
+    public static final String CONTENT_TYPE_FORMED = "application/x-www-form-urlencoded";
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.ACCEPTED)
     @ResponseBody
