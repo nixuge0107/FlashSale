@@ -1,12 +1,13 @@
-package com.xu.flashsale.controller.viewobject;
+package com.xu.flashsale.controller;
 
+import com.xu.flashsale.controller.viewobject.ItemVO;
 import com.xu.flashsale.error.BusinessException;
 import com.xu.flashsale.response.CommonReturnType;
 import com.xu.flashsale.service.impl.ItemServiceImpl;
 import com.xu.flashsale.service.model.ItemModel;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +51,7 @@ public class ItemController {
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
-        ItemModel itemModel = null;
-
-        itemModel = itemService.getItemById(id);
+        ItemModel itemModel = itemService.getItemById(id);
 
         ItemVO itemVO = convertVOFromModel(itemModel);
 
@@ -74,13 +73,21 @@ public class ItemController {
     }
 
 
-    private ItemVO convertVOFromModel(ItemModel itemModel) {
-        if (itemModel == null) {
+    private ItemVO convertVOFromModel(ItemModel itemModel){
+        if(itemModel == null){
             return null;
         }
         ItemVO itemVO = new ItemVO();
-        BeanUtils.copyProperties(itemModel, itemVO);
-
+        BeanUtils.copyProperties(itemModel,itemVO);
+        if(itemModel.getPromoModel() != null){
+            //有正在进行或即将进行的秒杀活动
+            itemVO.setPromoStatus(itemModel.getPromoModel().getStatus());
+            itemVO.setPromoId(itemModel.getPromoModel().getId());
+            itemVO.setStartDate(itemModel.getPromoModel().getStartDate().toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
+            itemVO.setPromoPrice(itemModel.getPromoModel().getPromoItemPrice());
+        }else{
+            itemVO.setPromoStatus(0);
+        }
         return itemVO;
     }
 }

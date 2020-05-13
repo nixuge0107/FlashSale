@@ -1,6 +1,7 @@
 package com.xu.flashsale.dao;
 
 import com.xu.flashsale.dataobject.ItemStockDO;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -54,4 +55,6 @@ public interface ItemStockDOMapper {
      * @mbg.generated Sun May 10 23:24:02 CST 2020
      */
     int updateByPrimaryKey(ItemStockDO record);
+
+    int decreaseStock(@Param("itemId") Integer itemId, @Param("amount") Integer amount);
 }

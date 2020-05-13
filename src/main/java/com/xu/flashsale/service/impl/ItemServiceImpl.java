@@ -7,7 +7,9 @@ import com.xu.flashsale.dataobject.ItemStockDO;
 import com.xu.flashsale.error.BusinessException;
 import com.xu.flashsale.error.EmBusinessError;
 import com.xu.flashsale.service.ItemService;
+import com.xu.flashsale.service.PromoService;
 import com.xu.flashsale.service.model.ItemModel;
+import com.xu.flashsale.service.model.PromoModel;
 import com.xu.flashsale.validator.ValidationResult;
 import com.xu.flashsale.validator.ValidatorImpl;
 import org.springframework.beans.BeanUtils;
@@ -30,7 +32,11 @@ public class ItemServiceImpl implements ItemService {
     private ItemDOMapper itemDOMapper;
 
     @Autowired
+    private PromoService promoService;
+
+    @Autowired
     private ItemStockDOMapper itemStockDOMapper;
+
 
 
     @Override
@@ -82,7 +88,32 @@ public class ItemServiceImpl implements ItemService {
         //将dataobject->model
         ItemModel itemModel = convertModelFromDataObject(itemDO,itemStockDO);
 
+        //获取活动商品信息
+        PromoModel promoModel = promoService.getPromoByItemId(itemModel.getId());
+        if(promoModel != null && promoModel.getStatus().intValue() != 3){
+            itemModel.setPromoModel(promoModel);
+        }
         return itemModel;
+    }
+
+    @Override
+    @Transactional
+    public boolean decreaseStock(Integer itemId, Integer amount) throws BusinessException {
+        int affectedRow =  itemStockDOMapper.decreaseStock(itemId,amount);
+        if(affectedRow > 0){
+            //更新库存成功
+            return true;
+        }else{
+            //更新库存失败
+            return false;
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public void increaseSales(Integer itemId, Integer amount) throws BusinessException {
+        itemDOMapper.increaseSales(itemId,amount);
     }
 
     private ItemDO convertItemDOFromItemModel(ItemModel itemModel){
