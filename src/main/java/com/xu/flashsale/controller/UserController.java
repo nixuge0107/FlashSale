@@ -9,6 +9,8 @@ import com.xu.flashsale.service.UserService;
 import com.xu.flashsale.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -20,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -27,6 +31,9 @@ import java.util.Random;
 public class UserController extends BaseComtroller{
     @Autowired
     private UserService userService;
+    @Autowired
+    @Qualifier("redisTemplate")
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(value = "/opt",method = {RequestMethod.POST},consumes = {CONTENT_TYPE_FORMED})
     public CommonReturnType getOpt(@RequestParam(name = "telphone") String telphone, HttpServletRequest request) {
@@ -85,10 +92,16 @@ public class UserController extends BaseComtroller{
         //用户登陆服务,用来校验用户登陆是否合法
         UserModel userModel = userService.validateLogin(telphone,this.EncodeByMd5(password));
         //将登陆凭证加入到用户登陆成功的session内
-        request.getSession().setAttribute("IS_LOGIN",true);
-        request.getSession().setAttribute("LOGIN_USER",userModel);
+        String uuid = UUID.randomUUID().toString();
+        uuid = uuid.replace("-", "");
+        System.out.println(uuid);
+        redisTemplate.opsForValue().set(uuid,userModel);
+        redisTemplate.expire(uuid, 1, TimeUnit.HOURS);
 
-        return CommonReturnType.create(null);
+//        request.getSession().setAttribute("IS_LOGIN",true);
+//        request.getSession().setAttribute("LOGIN_USER",userModel);
+
+        return CommonReturnType.create(uuid);
     }
 
     @RequestMapping("/get")

@@ -3,27 +3,39 @@ package com.xu.flashsale.controller;
 import com.xu.flashsale.controller.viewobject.ItemVO;
 import com.xu.flashsale.error.BusinessException;
 import com.xu.flashsale.response.CommonReturnType;
+import com.xu.flashsale.service.CacheService;
+import com.xu.flashsale.service.PromoService;
 import com.xu.flashsale.service.impl.ItemServiceImpl;
 import com.xu.flashsale.service.model.ItemModel;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.xu.flashsale.controller.BaseComtroller.CONTENT_TYPE_FORMED;
 
 @Controller
 @RequestMapping("/item")
-@CrossOrigin(origins = {"*"},allowCredentials = "true")
+@CrossOrigin(origins = {"*"}, allowCredentials = "true")
 public class ItemController {
 
     @Autowired
     private ItemServiceImpl itemService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private PromoService promoService;
 
     //创建商品的controller
     @RequestMapping(value = "/create", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -48,13 +60,29 @@ public class ItemController {
     }
 
     //商品详情页浏览
+    @RequestMapping(value = "/publishpromo", method = {RequestMethod.GET})
+    @ResponseBody
+    public CommonReturnType publishpromo(@RequestParam(name = "id") Integer id) {
+        promoService.publishPromo(id);
+        return CommonReturnType.create(null);
+    }
+    //商品详情页浏览
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
-        ItemModel itemModel = itemService.getItemById(id);
+        ItemModel itemModel = null;
+        itemModel = (ItemModel) cacheService.getFromCommonCache("item_" + id);
+        if (itemModel == null) {
+            itemModel = (ItemModel) redisTemplate.opsForValue().get("item_" + id);
+            if (itemModel == null) {
+                itemModel = itemService.getItemById(id);
+                redisTemplate.opsForValue().set("item_" + id, itemModel);
+                redisTemplate.expire("item_" + id, 10, TimeUnit.MINUTES);
+            }
+            cacheService.setCommonCache("item_" + id, itemModel);
+        }
 
         ItemVO itemVO = convertVOFromModel(itemModel);
-
         return CommonReturnType.create(itemVO);
     }
 
@@ -73,19 +101,19 @@ public class ItemController {
     }
 
 
-    private ItemVO convertVOFromModel(ItemModel itemModel){
-        if(itemModel == null){
+    private ItemVO convertVOFromModel(ItemModel itemModel) {
+        if (itemModel == null) {
             return null;
         }
         ItemVO itemVO = new ItemVO();
-        BeanUtils.copyProperties(itemModel,itemVO);
-        if(itemModel.getPromoModel() != null){
+        BeanUtils.copyProperties(itemModel, itemVO);
+        if (itemModel.getPromoModel() != null) {
             //有正在进行或即将进行的秒杀活动
             itemVO.setPromoStatus(itemModel.getPromoModel().getStatus());
             itemVO.setPromoId(itemModel.getPromoModel().getId());
             itemVO.setStartDate(itemModel.getPromoModel().getStartDate().toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
             itemVO.setPromoPrice(itemModel.getPromoModel().getPromoItemPrice());
-        }else{
+        } else {
             itemVO.setPromoStatus(0);
         }
         return itemVO;

@@ -6,6 +6,8 @@ import com.xu.flashsale.service.model.UserModel;
 public interface UserService {
     UserModel getUserById(int id);
 
+    UserModel getUserByIdInCache(int id);
+
     void register(UserModel userModel) throws BusinessException;
 
     UserModel validateLogin(String telphone,String encrptPassword) throws BusinessException;
