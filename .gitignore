@@ -35,3 +35,9 @@ build/
 mvnw
 mvnw.cmd
 /target/
+temp/workspace/flashsale.sql
+temp/application.properties
+temp/deploy.sh
+temp/flashsale-0.0.1-SNAPSHOT.jar
+temp/nohup.out
+temp/workspace/jdk-8u251-linux-x64.tar
